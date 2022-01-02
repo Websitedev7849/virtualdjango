@@ -1,12 +1,12 @@
 from django.http import HttpResponse, QueryDict
 import threading
 from datetime import datetime
-
+import schedule
 
 class HourCounter:
     def __init__(self):
-        self.initial_date = datetime.today()
-        self.initial_time = datetime.now()
+        self.initial_date = datetime.now().strftime('%x')
+        self.initial_time = f"{datetime.now().strftime('%I')}:{datetime.now().strftime('%M')} {datetime.now().strftime('%p')}"
         print(self.initial_time)
         self.hour_count = 0
 
@@ -15,14 +15,16 @@ class HourCounter:
 
 hour_counter = HourCounter()
 
-# function to call HourCounter.incrementCount at ever 1 hour interval interval
-def increaseHours():
-    global hour_counter
-    hour_counter.incrementCount()
-    threading.Timer(60 * 60, increaseHours).start()
-  
 
-increaseHours()
+schedule.every(1).hours.do(hour_counter.incrementCount)
+
+def set_interval(func, sec):
+    def func_wrapper():
+        set_interval(func, sec)
+        func()
+    t = threading.Timer(sec, func_wrapper)
+    t.start()
+    return t
 
 def about(request):
     return HttpResponse(f"""
@@ -35,6 +37,9 @@ def home(request):
 
 def getHourCount(request):
     return HttpResponse(f"initial_time: {hour_counter.initial_time}; initial_date: {hour_counter.initial_date}; hour_count : {hour_counter.hour_count}")
+
+
+set_interval(schedule.run_pending, 10)
 
 """
 /home/Websitedev7849/virtualdjango/project
