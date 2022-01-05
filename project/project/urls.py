@@ -6,5 +6,5 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
      path(f'', views.home), # home page
     path(r"about", views.about), # about page
-    path(r"hourcount", views.getHourCount) # get the count of hours server is runing
+    path(r"getprice", views.getPrice) # get the count of hours server is runing
 ]
