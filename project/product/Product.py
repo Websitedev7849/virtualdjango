@@ -1,8 +1,7 @@
 import requests
-import json
-import os
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 load_dotenv()
 
@@ -17,37 +16,56 @@ load_dotenv()
 }
 """
 
+headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"}
+
+
 class Product:
 
+
+
     def __init__(self, url):
-        self.url = url
-        self.raw_data = self.getRawData()
+        self.url = url[:url.find('ref', 0)]
+
+        self.page = requests.get( self.url, headers=headers)
+        self.soup = BeautifulSoup(self.page.content, "html.parser")
+
+        # self.raw_data = self.getRawData()
         self.asin = self.get_asin()
         self.name = self.getName()
         self.price = self.getPrice()
-        # self.date = datetime.datetime.year + datetime.datetime.month + datetime.datetime.date
 
+
+    """
     def getRawData(self):
         url = "https://api.rainforestapi.com/request?api_key=" + os.getenv("RAINFOREST_API_KEY") +"&type=product&url=" + self.url
         # print(requests.get(url).text)
         return json.loads(requests.get(url).text)
+    """
 
     def getName(self):
-        return self.raw_data["product"]["title"]
+        # self.url = https://www.amazon.in/Redmi-9A-Midnight-2GB-32GB/dp/B08697N43G/ref=lp_1389401031_1_5?th=1
+        u = urlparse(self.url)
+
+        # u.path.split('/)[1:] = ['Redmi-9A-Midnight-2GB-32GB', 'dp', 'B08697N43G', 'ref=lp_1389401031_1_5']
+        u = u.path.split('/')[1:]
+        
+        name = u[0]
+        name = name.replace('-', ' ')
+        return name
     
     def get_asin(self):
-        return self.raw_data["product"]["asin"]
+        # self.url = https://www.amazon.in/Redmi-9A-Midnight-2GB-32GB/dp/B08697N43G/ref=lp_1389401031_1_5?th=1
+        u = urlparse(self.url)
+
+        # u.path.split('/)[1:] = ['Redmi-9A-Midnight-2GB-32GB', 'dp', 'B08697N43G', 'ref=lp_1389401031_1_5']
+        u = u.path.split('/')[1:]
+
+        # return 3 element which is asin
+        return u[2]
 
     def getPrice(self):
-        URL = self.url
 
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"}
-
-        page = requests.get( URL, headers=headers)
-
-        soup = BeautifulSoup(page.content, "html.parser")
-
-        price = soup.find("span", {"class": "a-offscreen"})
+        price = self.soup.find("span", {"class": "a-offscreen"})
 
         priceToReturn = price.text[1:].replace(",", "")
 
