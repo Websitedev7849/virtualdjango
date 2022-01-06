@@ -1,5 +1,6 @@
 from django.http import HttpResponse, QueryDict
 from product.Product import Product
+import json
 
 
 def about(request):
@@ -12,8 +13,9 @@ def home(request):
     return HttpResponse("Home page")
 
 def getPrice(request):
-    url = request.GET["url"]
-    product = Product(url)
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    product = Product(body['url'])
     return HttpResponse( product.toString() )
 
 
