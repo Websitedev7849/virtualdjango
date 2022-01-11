@@ -1,1 +1,1 @@
-python project/manage.py runserver
+python project/manage.py runserver amazonpricetrackerpython.herokuapp.com
