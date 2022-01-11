@@ -15,8 +15,8 @@ def home(request):
 def getPrice(request):
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
-    product = Product(body['url'])
-    return HttpResponse( product.toString() )
+    # product = Product(body['url'])
+    return HttpResponse( body )
 
 
 """
