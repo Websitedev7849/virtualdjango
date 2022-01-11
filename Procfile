@@ -1,1 +1,1 @@
-python project/manage.py runserver amazonpricetrackerpython.herokuapp.com
+web: gunicorn project.wsgi
