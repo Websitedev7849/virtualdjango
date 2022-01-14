@@ -1,9 +1,10 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import requests
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 from urllib.parse import urlparse
 
-load_dotenv()
 
 
 """
@@ -24,53 +25,43 @@ class Product:
 
 
     def __init__(self, url):
-        self.url = url[:url.find('ref', 0)]
-
-        self.page = requests.get( self.url, headers=headers)
-        self.soup = BeautifulSoup(self.page.content, "html.parser")
-
-        # self.raw_data = self.getRawData()
+        self.url = url
+        
         self.asin = self.get_asin()
+        self.link = self.getLink()
+
+        self.page = requests.get( self.link, headers=headers)
+        self.soup = BeautifulSoup(self.page.content, "html.parser")
+        
         self.name = self.getName()
         self.price = self.getPrice()
 
-
-    """
-    def getRawData(self):
-        url = "https://api.rainforestapi.com/request?api_key=" + os.getenv("RAINFOREST_API_KEY") +"&type=product&url=" + self.url
-        # print(requests.get(url).text)
-        return json.loads(requests.get(url).text)
-    """
+    
+    def getLink(self):
+        return "https://www.amazon.in/dp/" + self.asin
 
     def getName(self):
-        # self.url = https://www.amazon.in/Redmi-9A-Midnight-2GB-32GB/dp/B08697N43G/ref=lp_1389401031_1_5?th=1
-        u = urlparse(self.url)
-
-        # u.path.split('/)[1:] = ['Redmi-9A-Midnight-2GB-32GB', 'dp', 'B08697N43G', 'ref=lp_1389401031_1_5']
-        u = u.path.split('/')[1:]
-        
-        name = u[0]
-        name = name.replace('-', ' ')
-        return name
+        nameTag = self.soup.find(id="productTitle")
+        return nameTag.text.strip()
     
     def get_asin(self):
-        # self.url = https://www.amazon.in/Redmi-9A-Midnight-2GB-32GB/dp/B08697N43G/ref=lp_1389401031_1_5?th=1
         u = urlparse(self.url)
 
         # u.path.split('/)[1:] = ['Redmi-9A-Midnight-2GB-32GB', 'dp', 'B08697N43G', 'ref=lp_1389401031_1_5']
         u = u.path.split('/')[1:]
 
-        # return 3 element which is asin
-        return u[2]
+        return u[u.index("dp") + 1]
 
     def getPrice(self):
 
         price = self.soup.find("span", {"class": "a-offscreen"})
 
-        priceToReturn = price.text[1:].replace(",", "")
+        # priceToReturn = price.text[1:].replace(",", "")
+        priceToReturn = price.text[1:].replace(",", "") if price != None else -1
 
         return float(priceToReturn)
 
     def toString(self):
-        return  "{" + f' "asin": "{self.asin}", "name": "{self.name}", "price" : {self.price}, "url" : "{self.url}" ' + "}"
+        # return self.rawData
+        return  "{" + f' "asin": "{self.asin}", "name": "{self.name}", "price" : {self.price}, "link" : "{self.link}" ' + "}"
 
